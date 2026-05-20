@@ -10,51 +10,47 @@ interface Props {
 }
 
 export default function Heatmap({ entries, weeks = 18 }: Props) {
-  const { grid, totals } = useMemo(() => {
+  const { grid, counts } = useMemo(() => {
     const days = weeks * 7;
-    const totals: Record<string, number> = {};
-    for (const e of entries) totals[e.date] = (totals[e.date] ?? 0) + e.minutes;
+    const counts: Record<string, number> = {};
+    for (const e of entries) counts[e.date] = (counts[e.date] ?? 0) + 1;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    // align so today is in the last column. Get the day-of-week for today.
     const start = subDays(today, days - 1);
 
-    const cells: { date: string; minutes: number; label: string }[] = [];
+    const cells: { date: string; count: number; label: string }[] = [];
     for (let i = 0; i < days; i++) {
       const d = subDays(today, days - 1 - i);
       const key = ymd(d);
-      cells.push({ date: key, minutes: totals[key] ?? 0, label: format(d, "EEE, MMM d") });
+      cells.push({ date: key, count: counts[key] ?? 0, label: format(d, "EEE, MMM d") });
     }
 
-    // Build columns of 7 days each (top = Sun, bottom = Sat, or simply sequential)
-    // We will use sequential per-column for simplicity. Column 0 is oldest week.
-    const grid: { date: string; minutes: number; label: string }[][] = [];
-    const startDow = start.getDay(); // 0 = Sun
-    // First column may have leading blanks
-    let col: ({ date: string; minutes: number; label: string } | null)[] = Array(startDow).fill(null);
+    const grid: { date: string; count: number; label: string }[][] = [];
+    const startDow = start.getDay();
+    let col: ({ date: string; count: number; label: string } | null)[] = Array(startDow).fill(null);
     for (const c of cells) {
       col.push(c);
       if (col.length === 7) {
-        grid.push(col as { date: string; minutes: number; label: string }[]);
+        grid.push(col as { date: string; count: number; label: string }[]);
         col = [];
       }
     }
     if (col.length > 0) {
       while (col.length < 7) col.push(null);
-      grid.push(col as { date: string; minutes: number; label: string }[]);
+      grid.push(col as { date: string; count: number; label: string }[]);
     }
-    return { grid, totals };
+    return { grid, counts };
   }, [entries, weeks]);
 
-  const total = Object.values(totals).reduce((a, b) => a + b, 0);
-  const activeDays = Object.values(totals).filter((m) => m > 0).length;
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const activeDays = Object.values(counts).filter((n) => n > 0).length;
 
-  const level = (m: number) => {
-    if (m === 0) return 0;
-    if (m < 20) return 1;
-    if (m < 45) return 2;
-    if (m < 90) return 3;
+  const level = (n: number) => {
+    if (n === 0) return 0;
+    if (n === 1) return 1;
+    if (n === 2) return 2;
+    if (n <= 4) return 3;
     return 4;
   };
 
@@ -64,11 +60,11 @@ export default function Heatmap({ entries, weeks = 18 }: Props) {
     <section className="surface p-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-          <span className="text-emerald-400">{">"}</span> activity heatmap
+          <span className="text-emerald-400">{">"}</span> growth heatmap
           <span className="chip ml-2">last {weeks} weeks</span>
         </h2>
         <div className="text-[11px] text-zinc-500">
-          {activeDays} active days · {total} min total
+          {activeDays} active days · {total} entries
         </div>
       </div>
 
@@ -85,8 +81,8 @@ export default function Heatmap({ entries, weeks = 18 }: Props) {
                 cell ? (
                   <div
                     key={ri}
-                    className={`hm-cell hm-${level(cell.minutes)} transition-transform hover:scale-125 cursor-default`}
-                    title={`${cell.label} — ${cell.minutes} min`}
+                    className={`hm-cell hm-${level(cell.count)} transition-transform hover:scale-125 cursor-default`}
+                    title={`${cell.label} — ${cell.count} ${cell.count === 1 ? "entry" : "entries"}`}
                   />
                 ) : (
                   <div key={ri} className="hm-cell opacity-0" />

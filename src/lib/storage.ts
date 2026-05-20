@@ -8,7 +8,7 @@ const EMPTY: TrackerState = {
   topics: [],
   subtopics: [],
   entries: [],
-  version: 1,
+  version: 2,
 };
 
 export const uid = () =>
@@ -16,18 +16,31 @@ export const uid = () =>
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2) + Date.now().toString(36));
 
+// migrate legacy entries: { minutes, notes } -> { summary }
+function migrate(raw: unknown): TrackerState {
+  type LegacyEntry = Partial<Entry> & { minutes?: number; notes?: string };
+  const s = raw as Partial<TrackerState> & { entries?: LegacyEntry[] };
+  return {
+    topics: s.topics ?? [],
+    subtopics: s.subtopics ?? [],
+    entries: (s.entries ?? []).map((e: LegacyEntry) => ({
+      id: e.id ?? uid(),
+      topicId: e.topicId!,
+      subtopicId: e.subtopicId,
+      date: e.date!,
+      summary: e.summary ?? e.notes ?? "(no summary)",
+      createdAt: e.createdAt ?? new Date().toISOString(),
+    })),
+    version: 2,
+  };
+}
+
 export function loadState(): TrackerState {
   if (typeof window === "undefined") return EMPTY;
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return EMPTY;
-    const parsed = JSON.parse(raw) as TrackerState;
-    return {
-      topics: parsed.topics ?? [],
-      subtopics: parsed.subtopics ?? [],
-      entries: parsed.entries ?? [],
-      version: parsed.version ?? 1,
-    };
+    return migrate(JSON.parse(raw));
   } catch {
     return EMPTY;
   }
@@ -44,9 +57,9 @@ export function exportState(): string {
 
 export function importState(json: string): boolean {
   try {
-    const parsed = JSON.parse(json) as TrackerState;
+    const parsed = JSON.parse(json);
     if (!parsed || !Array.isArray(parsed.topics)) return false;
-    saveState(parsed);
+    saveState(migrate(parsed));
     return true;
   } catch {
     return false;

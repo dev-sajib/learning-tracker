@@ -4,13 +4,13 @@ export interface Subtopic {
   id: ID;
   topicId: ID;
   name: string;
-  createdAt: string; // ISO
+  createdAt: string;
 }
 
 export interface Topic {
   id: ID;
   name: string;
-  color: string; // hex/css
+  color: string;
   icon?: string;
   createdAt: string;
 }
@@ -19,9 +19,8 @@ export interface Entry {
   id: ID;
   topicId: ID;
   subtopicId?: ID;
-  date: string; // YYYY-MM-DD (local)
-  minutes: number;
-  notes?: string;
+  date: string;     // YYYY-MM-DD local
+  summary: string;  // "what I learned"
   createdAt: string;
 }
 

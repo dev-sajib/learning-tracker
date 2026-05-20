@@ -46,10 +46,8 @@ export default function TopicPanel({
     setSubName("");
   };
 
-  const minutesFor = (topicId: string, subtopicId?: string) =>
-    entries
-      .filter((e) => e.topicId === topicId && (subtopicId ? e.subtopicId === subtopicId : true))
-      .reduce((a, e) => a + e.minutes, 0);
+  const countFor = (topicId: string, subtopicId?: string) =>
+    entries.filter((e) => e.topicId === topicId && (subtopicId ? e.subtopicId === subtopicId : true)).length;
 
   return (
     <section className="surface p-5 flex flex-col gap-4">
@@ -68,7 +66,7 @@ export default function TopicPanel({
           onChange={(e) => setTopicName(e.target.value)}
         />
         <button className="btn btn-primary" type="submit">
-          <FolderPlus size={14} /> add topic
+          <FolderPlus size={14} /> add
         </button>
       </form>
 
@@ -81,7 +79,7 @@ export default function TopicPanel({
         {topics.map((t) => {
           const subs = subtopics.filter((s) => s.topicId === t.id);
           const isOpen = expanded[t.id] ?? true;
-          const total = minutesFor(t.id);
+          const total = countFor(t.id);
           return (
             <div key={t.id} className="surface-2 p-3">
               <div className="flex items-center justify-between gap-2">
@@ -96,7 +94,9 @@ export default function TopicPanel({
                   />
                   <span className="font-medium truncate">{t.name}</span>
                   <span className="chip ml-1">{subs.length}</span>
-                  <span className="text-[11px] text-zinc-500 ml-auto tabular-nums">{total}m</span>
+                  <span className="text-[11px] text-zinc-500 ml-auto tabular-nums">
+                    {total} {total === 1 ? "entry" : "entries"}
+                  </span>
                 </button>
                 <button
                   className="text-zinc-600 hover:text-red-400 transition-colors"
@@ -120,7 +120,7 @@ export default function TopicPanel({
                   >
                     <div className="mt-3 ml-5 flex flex-col gap-1.5">
                       {subs.map((s) => {
-                        const sm = minutesFor(t.id, s.id);
+                        const sc = countFor(t.id, s.id);
                         return (
                           <div
                             key={s.id}
@@ -131,7 +131,7 @@ export default function TopicPanel({
                               <span className="text-zinc-300 truncate">{s.name}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-zinc-500 tabular-nums">{sm}m</span>
+                              <span className="text-zinc-500 tabular-nums">{sc}×</span>
                               <button
                                 className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 transition-opacity"
                                 onClick={() => onDeleteSubtopic(s.id)}

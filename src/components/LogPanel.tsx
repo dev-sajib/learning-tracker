@@ -2,20 +2,19 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Zap, Clock } from "lucide-react";
+import { Zap, BookCheck } from "lucide-react";
 import type { Topic, Subtopic } from "@/lib/types";
 
 interface Props {
   topics: Topic[];
   subtopics: Subtopic[];
-  onLog: (data: { topicId: string; subtopicId?: string; minutes: number; notes?: string }) => void;
+  onLog: (data: { topicId: string; subtopicId?: string; summary: string }) => void;
 }
 
 export default function LogPanel({ topics, subtopics, onLog }: Props) {
   const [topicId, setTopicId] = useState<string>("");
   const [subtopicId, setSubtopicId] = useState<string>("");
-  const [minutes, setMinutes] = useState<string>("30");
-  const [notes, setNotes] = useState<string>("");
+  const [summary, setSummary] = useState<string>("");
   const [flash, setFlash] = useState(false);
 
   const subs = useMemo(
@@ -23,22 +22,17 @@ export default function LogPanel({ topics, subtopics, onLog }: Props) {
     [subtopics, topicId]
   );
 
-  const quick = [15, 30, 45, 60, 90];
-
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const m = parseInt(minutes, 10);
-    if (!topicId || !m || m <= 0) return;
-    onLog({
-      topicId,
-      subtopicId: subtopicId || undefined,
-      minutes: m,
-      notes: notes.trim() || undefined,
-    });
-    setNotes("");
+    const v = summary.trim();
+    if (!topicId || !v) return;
+    onLog({ topicId, subtopicId: subtopicId || undefined, summary: v });
+    setSummary("");
     setFlash(true);
     setTimeout(() => setFlash(false), 600);
   };
+
+  const charCount = summary.length;
 
   return (
     <section className="surface p-5 flex flex-col gap-4 relative overflow-hidden">
@@ -50,12 +44,13 @@ export default function LogPanel({ topics, subtopics, onLog }: Props) {
           className="absolute inset-0 pointer-events-none bg-emerald-400/10 z-10"
         />
       )}
+
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
           <span className="text-emerald-400">{">"}</span> log learning · today
         </h2>
         <span className="chip glow-cyan text-cyan-300">
-          <Zap size={11} /> ship it
+          <BookCheck size={11} /> what I learned
         </span>
       </div>
 
@@ -92,46 +87,26 @@ export default function LogPanel({ topics, subtopics, onLog }: Props) {
           </label>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <span className="text-[11px] text-zinc-500 uppercase tracking-wider">Minutes</span>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              min={1}
-              className="input w-28 tabular-nums"
-              value={minutes}
-              onChange={(e) => setMinutes(e.target.value)}
-              required
-            />
-            <div className="flex gap-1.5 flex-wrap">
-              {quick.map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => setMinutes(String(q))}
-                  className={`chip hover:border-emerald-400/60 transition-colors ${minutes === String(q) ? "glow text-emerald-300" : ""}`}
-                >
-                  <Clock size={10} /> {q}m
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] text-zinc-500 uppercase tracking-wider">Notes (optional)</span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-zinc-500 uppercase tracking-wider">
+              What did you learn?
+            </span>
+            <span className="text-[10px] text-zinc-600 tabular-nums">{charCount}</span>
+          </div>
           <textarea
-            className="input min-h-[64px] resize-y"
-            placeholder="// today I learned about closures — lexical scoping & captured vars..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            className="input min-h-[120px] resize-y"
+            placeholder={`// e.g.\n// closures = function + its lexical environment\n// each call captures the outer scope, used for data privacy + currying`}
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            required
           />
         </label>
 
         <button
           type="submit"
           className="btn btn-primary justify-center"
-          disabled={!topicId || !minutes}
+          disabled={!topicId || !summary.trim()}
         >
           <Zap size={14} /> commit learning
         </button>

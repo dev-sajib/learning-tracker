@@ -16,7 +16,7 @@ import {
 import type { TrackerState, Topic, Subtopic, Entry } from "@/lib/types";
 import { today, ymd, subDays, parseISO } from "@/lib/date";
 
-const EMPTY: TrackerState = { topics: [], subtopics: [], entries: [], version: 1 };
+const EMPTY: TrackerState = { topics: [], subtopics: [], entries: [], version: 2 };
 
 export default function TrackerApp() {
   const [state, setState] = useState<TrackerState>(EMPTY);
@@ -75,18 +75,17 @@ export default function TrackerApp() {
   }, []);
 
   const logEntry = useCallback(
-    (data: { topicId: string; subtopicId?: string; minutes: number; notes?: string }) => {
+    (data: { topicId: string; subtopicId?: string; summary: string }) => {
       const entry: Entry = {
         id: uid(),
         topicId: data.topicId,
         subtopicId: data.subtopicId,
         date: today(),
-        minutes: data.minutes,
-        notes: data.notes,
+        summary: data.summary,
         createdAt: new Date().toISOString(),
       };
       setState((s) => ({ ...s, entries: [entry, ...s.entries] }));
-      flashToast(`✓ logged ${data.minutes}m`);
+      flashToast(`✓ logged: ${data.summary.slice(0, 40)}${data.summary.length > 40 ? "…" : ""}`);
     },
     []
   );
@@ -105,7 +104,6 @@ export default function TrackerApp() {
     let cursor = new Date();
     cursor.setHours(0, 0, 0, 0);
     if (!days.has(ymd(cursor))) {
-      // streak still counts if yesterday was active; start from yesterday
       cursor = subDays(cursor, 1);
     }
     while (days.has(ymd(cursor))) {
@@ -130,23 +128,19 @@ export default function TrackerApp() {
     return longest;
   }, [state.entries]);
 
-  const todayMinutes = useMemo(
-    () => state.entries.filter((e) => e.date === todayKey).reduce((a, e) => a + e.minutes, 0),
+  const todayEntries = useMemo(
+    () => state.entries.filter((e) => e.date === todayKey).length,
     [state.entries, todayKey]
   );
 
-  const weekMinutes = useMemo(() => {
+  const weekEntries = useMemo(() => {
     const start = ymd(subDays(new Date(), 6));
-    return state.entries
-      .filter((e) => e.date >= start && e.date <= todayKey)
-      .reduce((a, e) => a + e.minutes, 0);
+    return state.entries.filter((e) => e.date >= start && e.date <= todayKey).length;
   }, [state.entries, todayKey]);
 
-  const monthMinutes = useMemo(() => {
+  const monthEntries = useMemo(() => {
     const m = todayKey.slice(0, 7);
-    return state.entries
-      .filter((e) => e.date.startsWith(m))
-      .reduce((a, e) => a + e.minutes, 0);
+    return state.entries.filter((e) => e.date.startsWith(m)).length;
   }, [state.entries, todayKey]);
 
   // ---- import/export/reset ----
@@ -187,7 +181,6 @@ export default function TrackerApp() {
     flashToast("reset complete.");
   };
 
-  // ---- onboarding (one-shot) ----
   const seedDemo = () => {
     const now = new Date().toISOString();
     const js: Topic = { id: uid(), name: "JavaScript", color: "#fbbf24", createdAt: now };
@@ -200,12 +193,7 @@ export default function TrackerApp() {
       { id: uid(), topicId: py.id, name: "Decorators", createdAt: now },
       { id: uid(), topicId: sd.id, name: "Caching", createdAt: now },
     ];
-    setState({
-      topics: [js, py, sd],
-      subtopics: subs,
-      entries: [],
-      version: 1,
-    });
+    setState({ topics: [js, py, sd], subtopics: subs, entries: [], version: 2 });
     flashToast("starter topics added ✓");
   };
 
@@ -231,9 +219,10 @@ export default function TrackerApp() {
       <Stats
         topics={state.topics.length}
         subtopics={state.subtopics.length}
-        todayMinutes={todayMinutes}
-        weekMinutes={weekMinutes}
-        monthMinutes={monthMinutes}
+        totalEntries={state.entries.length}
+        todayEntries={todayEntries}
+        weekEntries={weekEntries}
+        monthEntries={monthEntries}
         streak={streak}
         longestStreak={longestStreak}
       />
@@ -247,9 +236,9 @@ export default function TrackerApp() {
                 welcome, dev <span className="cursor" />
               </div>
               <div className="text-xs text-zinc-400 mt-1">
-                start by adding a topic (e.g. <code className="text-emerald-300">JS</code>) and a
-                subtopic (e.g. <code className="text-cyan-300">Closure</code>). then log minutes
-                each day. your streak begins now.
+                add a topic (e.g. <code className="text-emerald-300">JS</code>) and a subtopic
+                (e.g. <code className="text-cyan-300">Closure</code>). then write <em>what you
+                learned</em>. your growth curve starts now.
               </div>
             </div>
           </div>
@@ -298,7 +287,7 @@ export default function TrackerApp() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
-            className="fixed bottom-6 right-6 chip glow text-emerald-300 backdrop-blur-md bg-black/60 px-4 py-2 text-xs"
+            className="fixed bottom-6 right-6 chip glow text-emerald-300 backdrop-blur-md bg-black/60 px-4 py-2 text-xs max-w-[80vw] truncate"
           >
             {toast}
           </motion.div>

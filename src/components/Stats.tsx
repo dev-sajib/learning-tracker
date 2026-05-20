@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BookOpen, Layers, Clock, CalendarDays, Trophy, Flame } from "lucide-react";
+import { BookOpen, Layers, NotebookPen, CalendarDays, Trophy, Flame } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface StatProps {
@@ -47,34 +47,28 @@ function StatCard({ label, value, hint, icon, accent = "emerald" }: StatProps) {
 interface Props {
   topics: number;
   subtopics: number;
-  todayMinutes: number;
-  weekMinutes: number;
-  monthMinutes: number;
+  totalEntries: number;
+  todayEntries: number;
+  weekEntries: number;
+  monthEntries: number;
   streak: number;
   longestStreak: number;
 }
 
 export default function Stats({
-  topics, subtopics, todayMinutes, weekMinutes, monthMinutes, streak, longestStreak,
+  topics, subtopics, totalEntries, todayEntries, weekEntries, monthEntries, streak, longestStreak,
 }: Props) {
-  const fmt = (m: number) => {
-    if (m < 60) return `${m}m`;
-    const h = Math.floor(m / 60);
-    const rem = m % 60;
-    return rem === 0 ? `${h}h` : `${h}h ${rem}m`;
-  };
-
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-      <StatCard label="Topics" value={topics} icon={<BookOpen size={16} />} accent="emerald" />
-      <StatCard label="Subtopics" value={subtopics} icon={<Layers size={16} />} accent="cyan" />
-      <StatCard label="Today" value={fmt(todayMinutes)} hint="minutes learned" icon={<Clock size={16} />} accent="violet" />
-      <StatCard label="This week" value={fmt(weekMinutes)} icon={<CalendarDays size={16} />} accent="cyan" />
-      <StatCard label="This month" value={fmt(monthMinutes)} icon={<CalendarDays size={16} />} accent="emerald" />
+      <StatCard label="Topics" value={topics} hint={`${subtopics} subtopics`} icon={<BookOpen size={16} />} accent="emerald" />
+      <StatCard label="Learned" value={totalEntries} hint="total entries logged" icon={<NotebookPen size={16} />} accent="cyan" />
+      <StatCard label="Today" value={todayEntries} hint={todayEntries === 0 ? "nothing logged yet" : "entries today"} icon={<Layers size={16} />} accent="violet" />
+      <StatCard label="This week" value={weekEntries} hint="entries (7d)" icon={<CalendarDays size={16} />} accent="cyan" />
+      <StatCard label="This month" value={monthEntries} hint="entries (MTD)" icon={<CalendarDays size={16} />} accent="emerald" />
       <StatCard
         label="Streak"
         value={<span className="inline-flex items-center gap-1">{streak}<Flame className="text-amber-400" size={18} /></span>}
-        hint={`best: ${longestStreak} · ${longestStreak === streak && streak > 0 ? "personal best!" : "keep going"}`}
+        hint={`best: ${longestStreak}${longestStreak > 0 && longestStreak === streak ? " · personal best!" : ""}`}
         icon={<Trophy size={16} />}
         accent="amber"
       />
