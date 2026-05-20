@@ -278,7 +278,7 @@ export default function TrackerApp() {
 
       <Heatmap entries={state.entries} />
 
-      <Charts topics={state.topics} entries={state.entries} />
+      <Charts topics={state.topics} subtopics={state.subtopics} entries={state.entries} />
 
       <QuickAdd
         topics={state.topics}
