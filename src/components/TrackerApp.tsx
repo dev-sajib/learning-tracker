@@ -10,6 +10,7 @@ import LogPanel from "./LogPanel";
 import Heatmap from "./Heatmap";
 import Charts from "./Charts";
 import ActivityFeed from "./ActivityFeed";
+import QuickAdd from "./QuickAdd";
 import {
   loadState, saveState, uid, exportState, importState, clearAll,
 } from "@/lib/storage";
@@ -22,6 +23,7 @@ export default function TrackerApp() {
   const [state, setState] = useState<TrackerState>(EMPTY);
   const [hydrated, setHydrated] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [quickAddCtl, setQuickAddCtl] = useState<{ tab: "topic" | "sub" | "log"; topicId?: string; ts: number } | null>(null);
 
   useEffect(() => {
     setState(loadState());
@@ -257,6 +259,9 @@ export default function TrackerApp() {
           onAddSubtopic={addSubtopic}
           onDeleteTopic={deleteTopic}
           onDeleteSubtopic={deleteSubtopic}
+          onOpenQuickSub={(topicId) =>
+            setQuickAddCtl({ tab: "sub", topicId, ts: Date.now() })
+          }
         />
         <LogPanel
           topics={state.topics}
@@ -274,6 +279,15 @@ export default function TrackerApp() {
       <Heatmap entries={state.entries} />
 
       <Charts topics={state.topics} entries={state.entries} />
+
+      <QuickAdd
+        topics={state.topics}
+        subtopics={state.subtopics}
+        onAddTopic={addTopic}
+        onAddSubtopic={addSubtopic}
+        onLog={logEntry}
+        controller={quickAddCtl}
+      />
 
       <footer className="text-[11px] text-zinc-600 text-center py-4">
         <span className="text-emerald-500">$</span> devtrack — all data lives in your browser ·

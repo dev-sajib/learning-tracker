@@ -13,6 +13,7 @@ interface Props {
   onAddSubtopic: (topicId: string, name: string) => void;
   onDeleteTopic: (topicId: string) => void;
   onDeleteSubtopic: (subtopicId: string) => void;
+  onOpenQuickSub?: (topicId: string) => void;
 }
 
 const TOPIC_COLORS = [
@@ -22,7 +23,7 @@ const TOPIC_COLORS = [
 
 export default function TopicPanel({
   topics, subtopics, entries,
-  onAddTopic, onAddSubtopic, onDeleteTopic, onDeleteSubtopic,
+  onAddTopic, onAddSubtopic, onDeleteTopic, onDeleteSubtopic, onOpenQuickSub,
 }: Props) {
   const [topicName, setTopicName] = useState("");
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
@@ -69,6 +70,13 @@ export default function TopicPanel({
           <FolderPlus size={14} /> add
         </button>
       </form>
+      <div className="text-[10px] text-zinc-500 -mt-2 flex items-center gap-1.5 flex-wrap">
+        <span>tip:</span>
+        <kbd className="px-1.5 py-0.5 rounded border border-[var(--border-2)] bg-[var(--card-2)] text-[10px]">⌘</kbd>
+        <span>+</span>
+        <kbd className="px-1.5 py-0.5 rounded border border-[var(--border-2)] bg-[var(--card-2)] text-[10px]">N</kbd>
+        <span>for quick-add modal · or use the + button bottom-right</span>
+      </div>
 
       <div className="flex flex-col gap-2 max-h-[420px] overflow-y-auto pr-1">
         {topics.length === 0 && (
@@ -97,6 +105,17 @@ export default function TopicPanel({
                   <span className="text-[11px] text-zinc-500 ml-auto tabular-nums">
                     {total} {total === 1 ? "entry" : "entries"}
                   </span>
+                </button>
+                <button
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-md border border-emerald-400/30 bg-emerald-400/5 text-emerald-300 hover:bg-emerald-400/15 hover:border-emerald-400/60 transition-all"
+                  onClick={() => {
+                    if (onOpenQuickSub) onOpenQuickSub(t.id);
+                    else { setActiveTopic(t.id); setExpanded((x) => ({ ...x, [t.id]: true })); }
+                  }}
+                  title="add subtopic"
+                  aria-label={`Add subtopic to ${t.name}`}
+                >
+                  <Plus size={12} />
                 </button>
                 <button
                   className="text-zinc-600 hover:text-red-400 transition-colors"
