@@ -1,26 +1,271 @@
 @import "tailwindcss";
 
+/* ---------- DARK (default) ---------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #050607;
+  --foreground: #e7ecef;
+  --card: #0b0d10;
+  --card-2: #0f1216;
+  --border: #1a1f26;
+  --border-2: #232a33;
+  --muted: #6b7280;
+  --accent: #34d399;
+  --accent-2: #22d3ee;
+  --accent-3: #a78bfa;
+  --warn: #fbbf24;
+  --danger: #f87171;
+
+  /* semantic text scale */
+  --text-strong: #f3f4f6;
+  --text:        #e5e7eb;
+  --text-muted:  #a1a1aa;
+  --text-dim:    #71717a;
+  --text-faint:  #52525b;
+
+  /* input/btn surfaces */
+  --input-bg: #0a0d11;
+  --btn-bg: #10141a;
+  --btn-bg-hover: #131922;
+  --chip-bg: #0c1014;
+
+  /* heatmap base */
+  --hm-empty: #0e1419;
+  --hm-empty-border: #131a21;
+
+  /* bg layers */
+  --grid-line: rgba(255,255,255,0.025);
+  --glow-1: rgba(52, 211, 153, 0.08);
+  --glow-2: rgba(34, 211, 238, 0.07);
+  --glow-3: rgba(167, 139, 250, 0.06);
+
+  color-scheme: dark;
+}
+
+/* ---------- LIGHT ---------- */
+[data-theme="light"] {
+  --background: #f7f8fa;
+  --foreground: #0b1220;
+  --card: #ffffff;
+  --card-2: #f3f5f8;
+  --border: #e3e7ec;
+  --border-2: #d6dbe2;
+  --muted: #6b7280;
+  --accent: #059669;
+  --accent-2: #0891b2;
+  --accent-3: #7c3aed;
+  --warn: #b45309;
+  --danger: #dc2626;
+
+  --text-strong: #0f172a;
+  --text:        #1f2937;
+  --text-muted:  #4b5563;
+  --text-dim:    #6b7280;
+  --text-faint:  #9ca3af;
+
+  --input-bg: #ffffff;
+  --btn-bg: #ffffff;
+  --btn-bg-hover: #f3f5f8;
+  --chip-bg: #ffffff;
+
+  --hm-empty: #eceff3;
+  --hm-empty-border: #dde2e8;
+
+  --grid-line: rgba(0,0,0,0.045);
+  --glow-1: rgba(5, 150, 105, 0.10);
+  --glow-2: rgba(8, 145, 178, 0.10);
+  --glow-3: rgba(124, 58, 237, 0.10);
+
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-border: var(--border);
+  --color-border-2: var(--border-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
+html, body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-feature-settings: "calt", "liga", "ss01";
+  transition: background-color .2s ease, color .2s ease;
 }
+
+/* ambient bg */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, var(--glow-1), transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, var(--glow-2), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, var(--glow-3), transparent 60%);
+  z-index: -2;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  z-index: -1;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* blinking cursor */
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.cursor::after {
+  content: "▌";
+  margin-left: 2px;
+  animation: blink 1s steps(1) infinite;
+  color: var(--accent);
+}
+
+/* glow chips */
+.glow {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent),
+    0 0 24px -4px color-mix(in oklab, var(--accent) 45%, transparent);
+}
+.glow-cyan {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent-2) 35%, transparent),
+    0 0 24px -4px color-mix(in oklab, var(--accent-2) 45%, transparent);
+}
+.glow-violet {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent-3) 35%, transparent),
+    0 0 24px -4px color-mix(in oklab, var(--accent-3) 45%, transparent);
+}
+
+/* gradient text */
+.grad-text {
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent-3) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* card surfaces */
+.surface {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--foreground) 2%, transparent), transparent), var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.surface-2 {
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/* input */
+.input {
+  background: var(--input-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--foreground);
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.input:focus {
+  border-color: color-mix(in oklab, var(--accent) 65%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+
+/* btn */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-2);
+  background: var(--btn-bg);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform .08s ease, border-color .15s ease, background .15s ease;
+}
+.btn:hover { border-color: color-mix(in oklab, var(--accent) 55%, transparent); background: var(--btn-bg-hover); }
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--accent) 18%, var(--btn-bg)),
+    color-mix(in oklab, var(--accent) 8%, var(--btn-bg))
+  );
+  border-color: color-mix(in oklab, var(--accent) 50%, transparent);
+  color: color-mix(in oklab, var(--accent) 50%, var(--foreground));
+}
+.btn-primary:hover { border-color: color-mix(in oklab, var(--accent) 80%, transparent); }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  background: var(--chip-bg);
+  color: var(--text-muted);
+}
+
+/* heatmap cells */
+.hm-cell { width: 12px; height: 12px; border-radius: 3px; background: var(--hm-empty); border: 1px solid var(--hm-empty-border); }
+.hm-1 { background: color-mix(in oklab, var(--accent) 22%, var(--hm-empty)); border-color: color-mix(in oklab, var(--accent) 35%, transparent); }
+.hm-2 { background: color-mix(in oklab, var(--accent) 42%, var(--hm-empty)); border-color: color-mix(in oklab, var(--accent) 55%, transparent); }
+.hm-3 { background: color-mix(in oklab, var(--accent) 65%, var(--hm-empty)); border-color: color-mix(in oklab, var(--accent) 75%, transparent); }
+.hm-4 { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px color-mix(in oklab, var(--accent) 55%, transparent); }
+
+/* ---------- semantic text utilities used across components ---------- */
+.text-strong { color: var(--text-strong); }
+.text-base-fg { color: var(--text); }
+.text-muted-fg { color: var(--text-muted); }
+.text-dim { color: var(--text-dim); }
+.text-faint { color: var(--text-faint); }
+
+/* ---------- Light-mode overrides for Tailwind zinc-* colors used in components ---------- */
+/* (cheap remap so we don't have to edit every component for parity) */
+[data-theme="light"] .text-zinc-200 { color: var(--text-strong); }
+[data-theme="light"] .text-zinc-300 { color: var(--text); }
+[data-theme="light"] .text-zinc-400 { color: var(--text-muted); }
+[data-theme="light"] .text-zinc-500 { color: var(--text-dim); }
+[data-theme="light"] .text-zinc-600 { color: var(--text-faint); }
+
+/* accent text colors keep their hue but darken slightly for contrast */
+[data-theme="light"] .text-emerald-300,
+[data-theme="light"] .text-emerald-400 { color: #047857; }
+[data-theme="light"] .text-cyan-300 { color: #0e7490; }
+[data-theme="light"] .text-amber-300,
+[data-theme="light"] .text-amber-400 { color: #b45309; }
+[data-theme="light"] .text-violet-300 { color: #6d28d9; }
+[data-theme="light"] .text-red-400 { color: #b91c1c; }
+
+/* hover bg in dark used white/3, in light invert */
+[data-theme="light"] .hover\:bg-white\/3:hover { background: rgba(0,0,0,0.04); }
